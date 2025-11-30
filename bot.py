@@ -4,17 +4,14 @@ import requests
 from telegram import Bot
 from telegram.error import TelegramError
 
-# --- КОНСТАНТИ ---
-# 1. Замініть на свій токен
+# --- КОНСТАНТИ (ОНОВЛЕНО) ---
 TELEGRAM_BOT_TOKEN = "7669729694:AAGEqOJUevQW3ZfDZzCswsfO791bD0RHwHk"
-# 2. Замініть на свій API-ключ OpenWeatherMap
 OPENWEATHERMAP_API_KEY = "c44a8a089d4f828cd6c46ad0b8a1747f"
-# 3. Замініть на ID чату, куди надсилати погоду (це може бути ваш особистий ID)
 TARGET_CHAT_ID = "1060933896"
-# Місто для запиту
 CITY = "Kyiv,UA"
-# Інтервал у секундах (30 хвилин = 1800 секунд)
-INTERVAL_SECONDS = 10
+# Інтервал для тестування: 30 секунд.
+# Для постійної роботи не забудь змінити на 1800!
+INTERVAL_SECONDS = 3
 
 # Налаштування логування
 logging.basicConfig(
@@ -57,3 +54,50 @@ def get_weather_data(city: str) -> str:
     humidity = main.get('humidity')
 
     # Форматування повідомлення
+    message = (
+        f"☀️ **Погода в Києві**\n"
+        f"--- оновлення ---\n"
+        f"🌡️ **Температура:** {temp:.1f}°C\n"
+        f"🤔 **Відчувається як:** {feels_like:.1f}°C\n"
+        f"☁️ **Умови:** {description}\n"
+        f"💨 **Вітер:** {wind_speed:.1f} м/с\n"
+        f"💧 **Вологість:** {humidity}%\n"
+    )
+    return message
+
+
+async def send_weather_update(bot: Bot):
+    """Отримує погоду та надсилає її у цільовий чат."""
+    weather_message = get_weather_data(CITY)
+
+    try:
+        await bot.send_message(
+            chat_id=TARGET_CHAT_ID,
+            text=weather_message,
+            parse_mode='Markdown'
+        )
+        logger.info(f"Надіслано оновлення погоди у чат {TARGET_CHAT_ID}")
+    except TelegramError as e:
+        logger.error(f"Помилка при надсиланні повідомлення в Telegram: {e}")
+
+
+async def main():
+    """Основна функція, яка запускає цикл оновлення."""
+    # Примітка: Оскільки ти надав робочі ключі, перевірка заглушок видалена.
+
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+    logger.info("Бот запущено. Початок циклу оновлення.")
+
+    while True:
+        # Чекаємо заданий інтервал
+        await asyncio.sleep(INTERVAL_SECONDS)
+
+        # Надсилаємо оновлення погоди
+        await send_weather_update(bot)
+
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Бот зупинено вручну.")
