@@ -15,7 +15,7 @@ CITY = "Kyiv,UA"
 # Шлях до файлу, де зберігаються ID чатів
 CHATS_FILE = "chats.txt"
 # Інтервал у секундах (30 хвилин = 1800 секунд)
-INTERVAL_SECONDS = 1800
+INTERVAL_SECONDS = 3
 
 # Налаштування логування
 logging.basicConfig(
